@@ -10,12 +10,12 @@ RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/ap
 	&& python3 -m ensurepip && rm -r /usr/lib/python*/ensurepip \
 	&& pip3 install --upgrade pip setuptools \
 	&& apk add --no-cache --virtual .build-deps@testing python3-dev make cmake clang clang-dev g++ \
-           linux-headers libtbb libtbb-dev openblas-dev freetype-dev libxml2-dev libxslt-dev \
+           linux-headers libtbb libtbb-dev openblas-dev freetype-dev libxml2-dev libxslt-dev nano \
 	&& export CC=/usr/bin/clang CXX=/usr/bin/clang++ \
 	&& ln -s /usr/include/locale.h /usr/include/xlocale.h \
 	&& mkdir -p /opt/tmp && cd /opt/tmp \
 	&& pip3 install --no-cache-dir jupyter ipywidgets numpy pandas xlrd lxml matplotlib seaborn \
-                pandas-highcharts ipysankeywidget calmap requests beautifulsoup4 minio sqlalchemy \
+                pandas-highcharts ipysankeywidget calmap requests beautifulsoup4 minio sqlalchemy jupyterlab \
 	&& jupyter nbextension enable --py widgetsnbextension \
 	&& jupyter nbextension enable --py ipysankeywidget \
 	&& echo "c.NotebookApp.token = ''" > /root/.jupyter/jupyter_notebook_config.py \
