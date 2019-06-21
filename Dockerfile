@@ -29,7 +29,7 @@ RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/ap
 
 RUN mkdir -p /certs
 
+EXPOSE 80
 WORKDIR /opt/notebook
-ENTRYPOINT /sbin/tini ; jupyter notebook --NotebookApp.token=test-secret --NotebookApp.allow_origin='*' \
-           --NotebookApp.ip=0.0.0.0 --NotebookApp.port=9999 --no-browser --allow-root
-
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=80", "--no-browser", "--allow-root"]
