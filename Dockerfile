@@ -28,7 +28,7 @@ RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/ap
 	&& find /usr/lib/python3.6/ -name __pycache__ -depth -exec rm -rf {} \;
 
 RUN mkdir -p /certs
-RUN echo "jupyter lab --ip=0.0.0.0 --port=9999 --no-browser --allow-root" > /bin/lab && chmod +x /bin/lab
+RUN echo "jupyter lab --ip=0.0.0.0 --port=80 --no-browser --allow-root" > /bin/lab && chmod +x /bin/lab
 WORKDIR /opt/notebook
 ENTRYPOINT /sbin/tini ; jupyter notebook --NotebookApp.token=test-secret --NotebookApp.allow_origin='*' \
            --NotebookApp.ip=0.0.0.0 --NotebookApp.port=999 --no-browser --allow-root
