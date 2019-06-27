@@ -27,17 +27,12 @@ RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/ap
 	&& find /usr/lib/python3.6/ -type d -name test -depth -exec rm -rf {} \; \
 	&& find /usr/lib/python3.6/ -name __pycache__ -depth -exec rm -rf {} \;
 
-
-ENV LANG=C.UTF-8
-
-# Add Edge repos
 RUN echo -e "\n\
 @edgemain http://nl.alpinelinux.org/alpine/edge/main\n\
 @edgecomm http://nl.alpinelinux.org/alpine/edge/community\n\
 @edgetest http://nl.alpinelinux.org/alpine/edge/testing"\
   >> /etc/apk/repositories
 
-# Install required packages
 RUN apk update && apk upgrade && apk --no-cache add \
   bash \
   build-base \
@@ -46,8 +41,8 @@ RUN apk update && apk upgrade && apk --no-cache add \
   clang \
   cmake \
   coreutils \
-  curl \ 
-  freetype-dev \
+  curl  
+RUN apk --no-cache add freetype-dev \
   ffmpeg-dev \
   ffmpeg-libs \
   gcc \
@@ -67,8 +62,8 @@ RUN apk update && apk upgrade && apk --no-cache add \
   linux-headers \
   make \
   musl \
-  openblas@edgecomm \
-  openblas-dev@edgecomm \
+  openblas \
+  openblas-dev \
   openjpeg-dev \
   openssl \
   python3 \
@@ -77,17 +72,14 @@ RUN apk update && apk upgrade && apk --no-cache add \
   unzip \
   zlib-dev
 
-# Python 3 as default
 RUN ln -s /usr/bin/python3 /usr/local/bin/python && \
   ln -s /usr/bin/pip3 /usr/local/bin/pip && \
   pip install --upgrade pip
 
-# Install NumPy
 RUN ln -s /usr/include/locale.h /usr/include/xlocale.h && \
   pip install numpy
 
-# Install OpenCV
-RUN mkdir /opt && cd /opt && \
+RUN mkdir -p /opt && cd /opt && \
   wget https://github.com/opencv/opencv/archive/3.2.0.zip && \
   unzip 3.2.0.zip && rm 3.2.0.zip && \
   wget https://github.com/opencv/opencv_contrib/archive/3.2.0.zip && \
@@ -111,8 +103,7 @@ RUN mkdir /opt && cd /opt && \
   cp -p $(find /usr/local/lib/python3.5/site-packages -name cv2.*.so) \
    /usr/lib/python3.5/site-packages/cv2.so && \
    python -c 'import cv2; print("Python: import cv2 - SUCCESS")'
-
-
+   
 RUN mkdir -p /certs
 RUN echo "jupyter lab --ip=0.0.0.0 --port=80 --no-browser --allow-root" > /bin/lab && chmod +x /bin/lab
 WORKDIR /opt/notebook
