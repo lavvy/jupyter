@@ -27,83 +27,38 @@ RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/ap
 	&& find /usr/lib/python3.6/ -type d -name test -depth -exec rm -rf {} \; \
 	&& find /usr/lib/python3.6/ -name __pycache__ -depth -exec rm -rf {} \;
 
-RUN echo -e "\n\
-@edgemain http://nl.alpinelinux.org/alpine/edge/main\n\
-@edgecomm http://nl.alpinelinux.org/alpine/edge/community\n\
-@edgetest http://nl.alpinelinux.org/alpine/edge/testing"\
-  >> /etc/apk/repositories
-
-RUN apk update && apk upgrade && apk --no-cache add \
-  bash \
-  build-base \
-  ca-certificates \
-  clang-dev \
-  clang \
-  cmake \
-  coreutils \
-  curl  
-RUN apk --no-cache add freetype-dev \
-  ffmpeg-dev \
-  ffmpeg-libs \
-  gcc \
-  g++ \
-  git \
-  gettext \
-  lcms2-dev \
-  libavc1394-dev \
-  libc-dev \
-  libffi-dev \
-  libjpeg-turbo-dev \
-  libpng-dev \
-  libressl-dev \
-  libtbb@edgetest \
-  libtbb-dev@edgetest \
-  libwebp-dev \
-  linux-headers \
-  make \
-  musl \
-  openblas \
-  openblas-dev \
-  openjpeg-dev \
-  openssl \
-  python3 \
-  python3-dev \
-  tiff-dev \
-  unzip \
-  zlib-dev
-
-RUN ln -s /usr/bin/python3 /usr/local/bin/python && \
-  ln -s /usr/bin/pip3 /usr/local/bin/pip && \
-  pip install --upgrade pip
-
-#RUN ln -s /usr/include/locale.h /usr/include/xlocale.h && \
-#  pip install numpy
-
-RUN mkdir -p /opt && cd /opt && \
-  wget https://github.com/opencv/opencv/archive/3.2.0.zip && \
-  unzip 3.2.0.zip && rm 3.2.0.zip && \
-  wget https://github.com/opencv/opencv_contrib/archive/3.2.0.zip && \
-  unzip 3.2.0.zip && rm 3.2.0.zip \
-  && \
-  cd /opt/opencv-3.2.0 && mkdir build && cd build && \
-  cmake -D CMAKE_BUILD_TYPE=RELEASE \
-    -D CMAKE_C_COMPILER=/usr/bin/clang \
-    -D CMAKE_CXX_COMPILER=/usr/bin/clang++ \
-    -D CMAKE_INSTALL_PREFIX=/usr/local \
-    -D INSTALL_PYTHON_EXAMPLES=OFF \
-    -D INSTALL_C_EXAMPLES=OFF \
-    -D WITH_FFMPEG=ON \
-    -D WITH_TBB=ON \
-    -D OPENCV_EXTRA_MODULES_PATH=/opt/opencv_contrib-3.2.0/modules \
-    -D PYTHON_EXECUTABLE=/usr/local/bin/python \
-    .. \
-  && \
-  make -j$(nproc) && make install && cd .. && rm -rf build \
-  && \
-  cp -p $(find /usr/local/lib/python3.5/site-packages -name cv2.*.so) \
-   /usr/lib/python3.5/site-packages/cv2.so && \
-   python -c 'import cv2; print("Python: import cv2 - SUCCESS")'
-   
+RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
+	&& apk update && apk upgrade \
+	&& apk add --no-cache tini python3 libstdc++ openblas freetype wget ca-certificates \
+	&& pip3 install --upgrade pip setuptools \
+	&& apk add --no-cache --virtual .build-deps@testing python3-dev make cmake clang clang-dev g++ linux-headers libtbb libtbb-dev openblas-dev freetype-dev \
+	&& export CC=/usr/bin/clang CXX=/usr/bin/clang++ \
+	&& mkdir -p /opt/tmp && cd /opt/tmp \
+	&& pip3 download -d /opt/tmp numpy \
+	&& unzip -q numpy*.zip \
+	&& cd numpy* && echo "Building numpy..." \
+	&& echo -e "[ALL]\nlibrary_dirs = /usr/lib\ninclude_dirs = /usr/include\n[atlas]\natlas_libs = openblas\nlibraries = openblas\n[openblas]\nlibraries = openblas\nlibrary_dirs = /usr/lib\ninclude_dirs = /usr/include\n" > site.cfg \
+	&& python3 setup.py build -j 4 install &> /dev/null && echo "Successfully installed numpy" \
+	&& cd /opt/tmp \
+	&& echo "Downloading opencv" && wget --quiet https://github.com/opencv/opencv/archive/4.0.1.zip \
+	&& unzip -q 4.0.1.zip \
+	&& cd opencv* \
+	&& mkdir build && cd build && echo "Building opencv..." \
+	&& cmake -D CMAKE_BUILD_TYPE=RELEASE \
+		-D CMAKE_INSTALL_PREFIX=/usr \
+		-D INSTALL_C_EXAMPLES=OFF \
+		-D INSTALL_PYTHON_EXAMPLES=OFF \
+		-D WITH_FFMPEG=NO \
+		-D WITH_IPP=NO \
+		-D WITH_OPENEXR=NO \
+		-D WITH_WEBP=NO \
+		-D WITH_TIFF=NO \
+		-D WITH_JASPER=NO \
+		-D BUILD_EXAMPLES=OFF \
+		-D BUILD_PERF_TESTS=NO \
+		-D BUILD_TESTS=NO .. \
+	&& make && make install && echo "Successfully installed opencv"
+	
 RUN mkdir -p /certs
 RUN echo "jupyter lab --ip=0.0.0.0 --port=80 --no-browser --allow-root" > /bin/lab && chmod +x /bin/lab
 WORKDIR /opt/notebook
