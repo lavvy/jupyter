@@ -76,8 +76,8 @@ RUN ln -s /usr/bin/python3 /usr/local/bin/python && \
   ln -s /usr/bin/pip3 /usr/local/bin/pip && \
   pip install --upgrade pip
 
-RUN ln -s /usr/include/locale.h /usr/include/xlocale.h && \
-  pip install numpy
+#RUN ln -s /usr/include/locale.h /usr/include/xlocale.h && \
+#  pip install numpy
 
 RUN mkdir -p /opt && cd /opt && \
   wget https://github.com/opencv/opencv/archive/3.2.0.zip && \
