@@ -57,7 +57,14 @@ RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/ap
 		-D BUILD_EXAMPLES=OFF \
 		-D BUILD_PERF_TESTS=NO \
 		-D BUILD_TESTS=NO .. \
-	&& make && make install && echo "Successfully installed opencv"
+	&& make && make install && echo "Successfully installed opencv" \
+        && cd /opt && rm -r /opt/tmp \
+	&& unset CC CXX \
+	&& apk del .build-deps \
+	&& rm -r /root/.cache \
+	&& find /usr/lib/python3.6/ -type d -name tests -depth -exec rm -rf {} \; \
+	&& find /usr/lib/python3.6/ -type d -name test -depth -exec rm -rf {} \; \
+	&& find /usr/lib/python3.6/ -name __pycache__ -depth -exec rm -rf {} \;
 	
 RUN mkdir -p /certs
 RUN echo "jupyter lab --ip=0.0.0.0 --port=80 --no-browser --allow-root" > /bin/lab && chmod +x /bin/lab
